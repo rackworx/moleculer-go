@@ -4,19 +4,18 @@ import (
 	"bytes"
 
 	"github.com/olebedev/emitter"
-	"github.com/rackworx/moleculer-go"
-	"github.com/rackworx/moleculer-go/pkg/transporters/base"
+	t "github.com/rackworx/moleculer-go/pkg/transporter"
 )
 
 var bus = &emitter.Emitter{}
 
 type fake struct {
-	*base.Base
+	*t.Base
 }
 
-func New(namespace string) moleculer.Transporter {
+func New(namespace string) t.Transporter {
 	return &fake{
-		Base: base.New(namespace),
+		Base: t.New(namespace),
 	}
 }
 
@@ -27,7 +26,7 @@ func (f *fake) Connect() error {
 func (f *fake) Disconnect() {
 }
 
-func (f *fake) Subscribe(subscription moleculer.Subscription) error {
+func (f *fake) Subscribe(subscription t.Subscription) error {
 	return nil
 }
 

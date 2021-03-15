@@ -1,7 +1,7 @@
 package test
 
 import (
-	"github.com/rackworx/moleculer-go"
+	"github.com/rackworx/moleculer-go/pkg/transporter"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/mock"
@@ -26,6 +26,6 @@ func (m *MockBroker) GetNodeID() string {
 	return ""
 }
 
-func (m *MockBroker) GetTransporter() moleculer.Transporter {
+func (m *MockBroker) GetTransporter() transporter.Transporter {
 	return nil
 }

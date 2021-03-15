@@ -3,7 +3,7 @@ package test
 import (
 	"bytes"
 
-	"github.com/rackworx/moleculer-go"
+	"github.com/rackworx/moleculer-go/pkg/transporter"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -19,7 +19,7 @@ func (m *MockTransporter) Connect() error {
 
 func (m *MockTransporter) Disconnect() {}
 
-func (m *MockTransporter) Subscribe(moleculer.Subscription) error {
+func (m *MockTransporter) Subscribe(transporter.Subscription) error {
 	return nil
 }
 

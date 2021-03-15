@@ -5,16 +5,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rackworx/moleculer-go"
 	"github.com/rackworx/moleculer-go/internal/transit"
 	"github.com/rackworx/moleculer-go/pkg/config"
+	tx "github.com/rackworx/moleculer-go/pkg/transporter"
 	"github.com/rackworx/moleculer-go/test"
 )
 
 func TestTransitCleanConnect(t *testing.T) {
 	broker := &test.MockBroker{}
 	transporter := &test.MockTransporter{}
-	transporterFactory := func(_ string) moleculer.Transporter {
+	transporterFactory := func(_ string) tx.Transporter {
 		return transporter
 	}
 
@@ -36,7 +36,7 @@ func TestTransitCleanConnect(t *testing.T) {
 func TestTransitInitialReconnect(t *testing.T) {
 	broker := &test.MockBroker{}
 	transporter := &test.MockTransporter{}
-	transporterFactory := func(_ string) moleculer.Transporter {
+	transporterFactory := func(_ string) tx.Transporter {
 		return transporter
 	}
 
@@ -63,7 +63,7 @@ func TestTransitInitialReconnect(t *testing.T) {
 func TestTransitInitialNoReconnect(t *testing.T) {
 	broker := &test.MockBroker{}
 	transporter := &test.MockTransporter{}
-	transporterFactory := func(_ string) moleculer.Transporter {
+	transporterFactory := func(_ string) tx.Transporter {
 		return transporter
 	}
 

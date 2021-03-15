@@ -6,13 +6,14 @@ import (
 	"github.com/rackworx/moleculer-go"
 	"github.com/rackworx/moleculer-go/internal/packets"
 	"github.com/rackworx/moleculer-go/pkg/config"
+	tx "github.com/rackworx/moleculer-go/pkg/transporter"
 	"github.com/rs/zerolog"
 )
 
 type transit struct {
 	broker      moleculer.ServiceBroker
 	logger      zerolog.Logger
-	transporter moleculer.Transporter
+	transporter tx.Transporter
 	connected   bool
 	connecting  bool
 	config      config.TransitConfig
@@ -64,7 +65,7 @@ func (t *transit) getNodeID() string {
 }
 
 func (t *transit) makeSubscriptions() {
-	var subscriptions = []moleculer.Subscription{
+	var subscriptions = []tx.Subscription{
 		{
 			Cmd:    packets.PACKET_EVENT,
 			NodeID: t.getNodeID(),
@@ -115,7 +116,7 @@ func (t *transit) makeSubscriptions() {
 	}
 }
 
-func (t *transit) subscribe(s moleculer.Subscription) {
+func (t *transit) subscribe(s tx.Subscription) {
 	t.transporter.Subscribe(s)
 }
 

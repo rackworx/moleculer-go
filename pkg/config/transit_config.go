@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/imdario/mergo"
-	"github.com/rackworx/moleculer-go"
+	t "github.com/rackworx/moleculer-go/pkg/transporter"
 	"github.com/rackworx/moleculer-go/pkg/transporters/fake"
 )
 
@@ -14,7 +14,7 @@ type TransitConfig struct {
 	DisableReconnect    bool
 	DisableVersionCheck bool
 	ReconnectDelay      time.Duration
-	TransporterFactory  func(string) moleculer.Transporter
+	TransporterFactory  func(string) t.Transporter
 }
 
 func createDefaultTransitConfig(config TransitConfig) TransitConfig {
