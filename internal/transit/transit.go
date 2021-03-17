@@ -1,6 +1,7 @@
 package transit
 
 import (
+	"errors"
 	"time"
 
 	"github.com/rackworx/moleculer-go"
@@ -15,8 +16,6 @@ type transit struct {
 	broker      moleculer.ServiceBroker
 	logger      zerolog.Logger
 	transporter tx.Transporter
-	connected   bool
-	connecting  bool
 	config      config.TransitConfig
 }
 
@@ -33,33 +32,47 @@ func New(config config.TransitConfig, broker moleculer.ServiceBroker) tz.Transit
 }
 
 func (t *transit) Connect(isReconnect bool) {
-	if t.transporter.IsConnected() {
+	t.logger.Info().Msg("connecting to transporter")
+
+	if isReconnect && t.config.DisableReconnect {
+		t.logger.Fatal().Msg("transporter connection failed and DisabledReconnect" +
+			"is enabled")
 		return
 	}
 
-	t.logger.Info().Msg("connecting to transporter...")
+	if isReconnect {
+		time.Sleep(t.config.ReconnectDelay)
+	}
 
-	t.connecting = true
+	err := t.transporter.Connect()
 
-	for {
-		err := t.transporter.Connect()
+	if err != nil {
+		t.AfterTransporterDisconnect(err)
+		return
+	}
 
-		if err != nil {
-			if t.config.DisableReconnect {
-				t.logger.Fatal().Err(err).Msg("")
-			} else {
-				t.logger.Warn().Err(err).Msg("connection failed")
-				time.Sleep(t.config.ReconnectDelay)
-				t.logger.Info().Msg("reconnecting")
-				continue
-			}
+	timeout := 0 * time.Millisecond
+	for ok := true; ok; ok = !t.transporter.IsConnected() {
+		if timeout > t.config.ConnectTimeout {
+			t.AfterTransporterDisconnect(
+				errors.New("timed out connecting to transporter"),
+			)
+			return
 		}
 
-		t.connecting = false
-		t.connected = true
-		t.logger.Info().Msg("connected")
-		break
+		time.Sleep(10 * time.Millisecond)
+		timeout = timeout + 10*time.Millisecond
 	}
+
+	t.AfterTransporterConnect(isReconnect)
+}
+
+func (t *transit) AfterTransporterConnect(reconnect bool) {
+}
+
+func (t *transit) AfterTransporterDisconnect(err error) {
+	t.logger.Error().Err(err).Msg("")
+	t.Connect(true)
 }
 
 func (t *transit) getNodeID() string {
@@ -120,12 +133,6 @@ func (t *transit) makeSubscriptions() {
 
 func (t *transit) GetNamespace() string {
 	return t.broker.GetNamespace()
-}
-
-func (t *transit) AfterTransporterConnect(reconnect bool) {
-}
-
-func (t *transit) AfterTransporterDisconnect(err error) {
 }
 
 func (t *transit) subscribe(s tx.Subscription) {

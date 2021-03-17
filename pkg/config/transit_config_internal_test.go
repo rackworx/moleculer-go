@@ -30,4 +30,11 @@ func TestCreateDefaultTransitConfig(t *testing.T) {
 		500,
 		createDefaultTransitConfig(TransitConfig{MaxQueueSize: 500}).MaxQueueSize,
 	)
+	assert.Equal(
+		t,
+		1*time.Millisecond,
+		createDefaultTransitConfig(
+			TransitConfig{ReconnectDelay: 1 * time.Millisecond},
+		).ReconnectDelay,
+	)
 }

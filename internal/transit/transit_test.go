@@ -12,56 +12,7 @@ import (
 	"github.com/rackworx/moleculer-go/test"
 )
 
-func TestTransitCleanConnect(t *testing.T) {
-	broker := &test.MockBroker{}
-	transporter := &test.MockTransporter{}
-	transporterFactory := func(tz tz.Transit) tx.Transporter {
-		return transporter
-	}
-
-	cfg := config.New(config.Config{
-		Transit: config.TransitConfig{
-			TransporterFactory: transporterFactory,
-		},
-	})
-
-	broker.On("GetNamespace").Return("")
-	transporter.On("Connect").Return(nil)
-
-	transit := transit.New(cfg.Transit, broker)
-	transit.Connect(false)
-
-	transporter.AssertExpectations(t)
-}
-
-func TestTransitInitialReconnect(t *testing.T) {
-	broker := &test.MockBroker{}
-	transporter := &test.MockTransporter{}
-	transporterFactory := func(_ tz.Transit) tx.Transporter {
-		return transporter
-	}
-
-	cfg := config.New(config.Config{
-		Transit: config.TransitConfig{
-			ReconnectDelay:     1 * time.Millisecond,
-			TransporterFactory: transporterFactory,
-		},
-	})
-
-	err := errors.New("test")
-
-	broker.On("GetNamespace").Return("")
-
-	transporter.On("Connect").Return(err).Once()
-	transporter.On("Connect").Return(nil).Once()
-
-	transit := transit.New(cfg.Transit, broker)
-	transit.Connect(false)
-
-	transporter.AssertExpectations(t)
-}
-
-func TestTransitInitialNoReconnect(t *testing.T) {
+func TestTransitConnectReconnectWithDisabledReconnect(t *testing.T) {
 	broker := &test.MockBroker{}
 	transporter := &test.MockTransporter{}
 	transporterFactory := func(_ tz.Transit) tx.Transporter {
@@ -75,13 +26,80 @@ func TestTransitInitialNoReconnect(t *testing.T) {
 		},
 	})
 
-	err := errors.New("test")
+	transit := transit.New(cfg.Transit, broker)
+	transit.Connect(true)
 
-	broker.On("GetNamespace").Return("").Once()
-	transporter.On("Connect").Return(err).Once()
+	transporter.AssertExpectations(t)
+}
+
+func TestTransitConnectReconnectWithoutDisabledReconnect(t *testing.T) {
+	broker := &test.MockBroker{}
+	transporter := &test.MockTransporter{}
+	transporterFactory := func(_ tz.Transit) tx.Transporter {
+		return transporter
+	}
+
+	cfg := config.New(config.Config{
+		Transit: config.TransitConfig{
+			TransporterFactory: transporterFactory,
+			ReconnectDelay:     1 * time.Millisecond,
+		},
+	})
+
+	transporter.On("Connect").Return(nil)
+	transporter.On("IsConnected").Return(true).Once()
 
 	transit := transit.New(cfg.Transit, broker)
-	transit.Connect(false)
+	transit.Connect(true)
+
+	transporter.AssertExpectations(t)
+}
+
+func TestTransporterConnectError(t *testing.T) {
+	broker := &test.MockBroker{}
+	transporter := &test.MockTransporter{}
+	transporterFactory := func(_ tz.Transit) tx.Transporter {
+		return transporter
+	}
+
+	cfg := config.New(config.Config{
+		Transit: config.TransitConfig{
+			TransporterFactory: transporterFactory,
+			ReconnectDelay:     1 * time.Millisecond,
+		},
+	})
+
+	transporter.On("Connect").Return(errors.New("error!")).Once()
+	transporter.On("Connect").Return(nil)
+	transporter.On("IsConnected").Return(true).Once()
+
+	transit := transit.New(cfg.Transit, broker)
+	transit.Connect(true)
+
+	transporter.AssertExpectations(t)
+}
+
+func TestConnectTimeout(t *testing.T) {
+	broker := &test.MockBroker{}
+	transporter := &test.MockTransporter{}
+	transporterFactory := func(_ tz.Transit) tx.Transporter {
+		return transporter
+	}
+
+	cfg := config.New(config.Config{
+		Transit: config.TransitConfig{
+			TransporterFactory: transporterFactory,
+			ReconnectDelay:     1 * time.Millisecond,
+			ConnectTimeout:     10 * time.Millisecond,
+		},
+	})
+
+	transporter.On("Connect").Return(nil)
+	transporter.On("IsConnected").Return(false).Times(11)
+	transporter.On("IsConnected").Return(true).Once()
+
+	transit := transit.New(cfg.Transit, broker)
+	transit.Connect(true)
 
 	transporter.AssertExpectations(t)
 }

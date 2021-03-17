@@ -14,6 +14,7 @@ type TransitConfig struct {
 	DisableReconnect    bool
 	DisableVersionCheck bool
 	ReconnectDelay      time.Duration
+	ConnectTimeout      time.Duration
 	TransporterFactory  t.TransporterFactory
 }
 
@@ -23,6 +24,7 @@ func createDefaultTransitConfig(config TransitConfig) TransitConfig {
 		MaxChunkSize:       256000,
 		ReconnectDelay:     5 * time.Second,
 		TransporterFactory: fake.New(),
+		ConnectTimeout:     10 * time.Second,
 	}
 
 	mergo.Merge(&config, cfg)
