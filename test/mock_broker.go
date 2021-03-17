@@ -23,7 +23,9 @@ func (m *MockBroker) GetNamespace() string {
 }
 
 func (m *MockBroker) GetNodeID() string {
-	return ""
+	args := m.Called()
+
+	return args.String(0)
 }
 
 func (m *MockBroker) GetTransporter() transporter.Transporter {

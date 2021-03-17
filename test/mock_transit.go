@@ -12,14 +12,12 @@ func (m *MockTransit) GetNamespace() string {
 	return args.String(0)
 }
 
-func (m *MockTransit) AfterTransporterConnect(reconnect bool) {
-	m.Called(reconnect)
-}
-
 func (m *MockTransit) AfterTransporterDisconnect(err error) {
 	m.Called(err)
 }
 
-func (m *MockTransit) Connect(isReconnect bool) {
-	m.Called(isReconnect)
+func (m *MockTransit) Connect(isReconnect bool) error {
+	args := m.Called(isReconnect)
+
+	return args.Error(0)
 }

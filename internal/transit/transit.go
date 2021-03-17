@@ -31,13 +31,12 @@ func New(config config.TransitConfig, broker moleculer.ServiceBroker) tz.Transit
 	return xit
 }
 
-func (t *transit) Connect(isReconnect bool) {
+func (t *transit) Connect(isReconnect bool) error {
 	t.logger.Info().Msg("connecting to transporter")
 
 	if isReconnect && t.config.DisableReconnect {
-		t.logger.Fatal().Msg("transporter connection failed and DisabledReconnect" +
-			"is enabled")
-		return
+		return errors.New("transported failed to connect and DisableReconnect " +
+			"is set to true")
 	}
 
 	if isReconnect {
@@ -48,7 +47,7 @@ func (t *transit) Connect(isReconnect bool) {
 
 	if err != nil {
 		t.AfterTransporterDisconnect(err)
-		return
+		return nil
 	}
 
 	timeout := 0 * time.Millisecond
@@ -57,17 +56,35 @@ func (t *transit) Connect(isReconnect bool) {
 			t.AfterTransporterDisconnect(
 				errors.New("timed out connecting to transporter"),
 			)
-			return
+			return nil
 		}
 
 		time.Sleep(10 * time.Millisecond)
 		timeout = timeout + 10*time.Millisecond
 	}
 
-	t.AfterTransporterConnect(isReconnect)
+	err = t.afterTransporterConnect(isReconnect)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (t *transit) AfterTransporterConnect(reconnect bool) {
+func (t *transit) afterTransporterConnect(reconnect bool) error {
+	if reconnect {
+		// send local node info
+		return nil
+	} else {
+		err := t.makeSubscriptions()
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (t *transit) AfterTransporterDisconnect(err error) {
@@ -79,7 +96,7 @@ func (t *transit) getNodeID() string {
 	return t.broker.GetNodeID()
 }
 
-func (t *transit) makeSubscriptions() {
+func (t *transit) makeSubscriptions() error {
 	var subscriptions = []tx.Subscription{
 		{
 			Cmd:    packets.PACKET_EVENT,
@@ -127,14 +144,26 @@ func (t *transit) makeSubscriptions() {
 	}
 
 	for _, s := range subscriptions {
-		t.subscribe(s)
+		err := t.subscribe(s)
+
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func (t *transit) GetNamespace() string {
 	return t.broker.GetNamespace()
 }
 
-func (t *transit) subscribe(s tx.Subscription) {
-	t.transporter.Subscribe(s)
+func (t *transit) subscribe(s tx.Subscription) error {
+	err := t.transporter.Subscribe(s)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

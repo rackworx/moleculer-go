@@ -26,8 +26,6 @@ func New() t.TransporterFactory {
 func (f *fake) Connect() error {
 	f.connected = true
 
-	f.Base.Transit.AfterTransporterConnect(false)
-
 	return nil
 }
 

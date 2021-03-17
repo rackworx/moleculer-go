@@ -19,8 +19,10 @@ func (m *MockTransporter) Connect() error {
 
 func (m *MockTransporter) Disconnect() {}
 
-func (m *MockTransporter) Subscribe(transporter.Subscription) error {
-	return nil
+func (m *MockTransporter) Subscribe(sub transporter.Subscription) error {
+	args := m.Called(sub)
+
+	return args.Error(0)
 }
 
 func (m *MockTransporter) Send(topic string, data bytes.Buffer, meta interface{}) error {
