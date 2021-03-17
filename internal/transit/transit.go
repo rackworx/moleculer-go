@@ -6,6 +6,7 @@ import (
 	"github.com/rackworx/moleculer-go"
 	"github.com/rackworx/moleculer-go/internal/packets"
 	"github.com/rackworx/moleculer-go/pkg/config"
+	tz "github.com/rackworx/moleculer-go/pkg/transit"
 	tx "github.com/rackworx/moleculer-go/pkg/transporter"
 	"github.com/rs/zerolog"
 )
@@ -19,18 +20,21 @@ type transit struct {
 	config      config.TransitConfig
 }
 
-func New(config config.TransitConfig, broker moleculer.ServiceBroker) *transit {
-	return &transit{
-		broker:      broker,
-		logger:      broker.GetLogger("transit"),
-		config:      config,
-		transporter: config.TransporterFactory(broker.GetNamespace()),
+func New(config config.TransitConfig, broker moleculer.ServiceBroker) tz.Transit {
+	xit := &transit{
+		broker: broker,
+		logger: broker.GetLogger("transit"),
+		config: config,
 	}
+
+	xit.transporter = config.TransporterFactory(xit)
+
+	return xit
 }
 
-func (t *transit) Connect(isReconnect bool) error {
-	if t.connected || t.connecting {
-		return nil
+func (t *transit) Connect(isReconnect bool) {
+	if t.transporter.IsConnected() {
+		return
 	}
 
 	t.logger.Info().Msg("connecting to transporter...")
@@ -42,7 +46,7 @@ func (t *transit) Connect(isReconnect bool) error {
 
 		if err != nil {
 			if t.config.DisableReconnect {
-				return err
+				t.logger.Fatal().Err(err).Msg("")
 			} else {
 				t.logger.Warn().Err(err).Msg("connection failed")
 				time.Sleep(t.config.ReconnectDelay)
@@ -56,8 +60,6 @@ func (t *transit) Connect(isReconnect bool) error {
 		t.logger.Info().Msg("connected")
 		break
 	}
-
-	return nil
 }
 
 func (t *transit) getNodeID() string {
@@ -116,14 +118,16 @@ func (t *transit) makeSubscriptions() {
 	}
 }
 
-func (t *transit) subscribe(s tx.Subscription) {
-	t.transporter.Subscribe(s)
+func (t *transit) GetNamespace() string {
+	return t.broker.GetNamespace()
 }
 
-func (t *transit) afterConnect(wasReconnect bool) {
-	if wasReconnect {
+func (t *transit) AfterTransporterConnect(reconnect bool) {
+}
 
-	} else {
-		t.makeSubscriptions()
-	}
+func (t *transit) AfterTransporterDisconnect(err error) {
+}
+
+func (t *transit) subscribe(s tx.Subscription) {
+	t.transporter.Subscribe(s)
 }

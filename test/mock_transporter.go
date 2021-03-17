@@ -26,3 +26,9 @@ func (m *MockTransporter) Subscribe(transporter.Subscription) error {
 func (m *MockTransporter) Send(topic string, data bytes.Buffer, meta interface{}) error {
 	return nil
 }
+
+func (m *MockTransporter) IsConnected() bool {
+	args := m.Called()
+
+	return args.Bool(0)
+}

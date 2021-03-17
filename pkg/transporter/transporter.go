@@ -1,6 +1,15 @@
 package transporter
 
-import "bytes"
+import (
+	"bytes"
+
+	"github.com/rackworx/moleculer-go/pkg/transit"
+)
+
+type AfterTransporterConnect func(reconnect bool)
+type AfterTransporterDisconnect func(error)
+
+type TransporterFactory func(x transit.Transit) Transporter
 
 type Transporter interface {
 	// to the transporter bus
@@ -12,4 +21,5 @@ type Transporter interface {
 	// data buffer
 	Send(topic string, data bytes.Buffer, meta interface{}) error
 	// starts the transporter and waits for an error
+	IsConnected() bool
 }

@@ -2,15 +2,19 @@ package transporter
 
 import (
 	"fmt"
+
+	"github.com/rackworx/moleculer-go/pkg/transit"
 )
 
 type Base struct {
-	prefix string
+	prefix  string
+	Transit transit.Transit
 }
 
-func New(namespace string) *Base {
+func New(x transit.Transit) *Base {
 	return &Base{
-		prefix: getPrefix(namespace),
+		prefix:  getPrefix(x.GetNamespace()),
+		Transit: x,
 	}
 }
 
