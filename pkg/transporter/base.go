@@ -18,12 +18,13 @@ func New(x transit.Transit) *Base {
 	}
 }
 
-func (b *Base) GetTopicNameForNode(cmd string, nodeID string) string {
-	return b.GetTopicName(fmt.Sprintf("%s.%s", cmd, nodeID))
-}
+func (b *Base) GetTopicName(sub Subscription) string {
+	t := fmt.Sprintf("%s.%s", b.prefix, sub.Cmd)
+	if sub.NodeID != "" {
+		t = fmt.Sprintf("%s.%s", t, sub.NodeID)
+	}
 
-func (b *Base) GetTopicName(cmd string) string {
-	return fmt.Sprintf("%s.%s", b.prefix, cmd)
+	return t
 }
 
 func getPrefix(namespace string) string {
