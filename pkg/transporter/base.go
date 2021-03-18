@@ -3,6 +3,7 @@ package transporter
 import (
 	"fmt"
 
+	"github.com/rackworx/moleculer-go/pkg/packet"
 	"github.com/rackworx/moleculer-go/pkg/transit"
 )
 
@@ -25,6 +26,9 @@ func (b *Base) GetTopicName(sub Subscription) string {
 	}
 
 	return t
+}
+
+func (b *Base) Receive(sub Subscription, packet packet.Packet) {
 }
 
 func getPrefix(namespace string) string {

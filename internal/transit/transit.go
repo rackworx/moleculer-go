@@ -7,6 +7,7 @@ import (
 	"github.com/rackworx/moleculer-go"
 	"github.com/rackworx/moleculer-go/internal/packets"
 	"github.com/rackworx/moleculer-go/pkg/config"
+	"github.com/rackworx/moleculer-go/pkg/packet"
 	tz "github.com/rackworx/moleculer-go/pkg/transit"
 	tx "github.com/rackworx/moleculer-go/pkg/transporter"
 	"github.com/rs/zerolog"
@@ -72,6 +73,26 @@ func (t *transit) Connect(isReconnect bool) error {
 	return nil
 }
 
+func (t *transit) HandlePacket(packet packet.Packet) {
+	data := packet.Payload.([]byte)
+
+	switch packet.Type {
+	case packets.PACKET_INFO:
+		payload := &packets.InfoPayload{}
+
+		err := t.config.Serializer.Unmarshal(data, payload)
+
+		if err != nil {
+			t.logger.Error().Err(err).Msg("")
+		}
+	}
+}
+
+func (t *transit) AfterTransporterDisconnect(err error) {
+	t.logger.Error().Err(err).Msg("")
+	t.Connect(true)
+}
+
 func (t *transit) afterTransporterConnect(reconnect bool) error {
 	if reconnect {
 		// send local node info
@@ -85,11 +106,6 @@ func (t *transit) afterTransporterConnect(reconnect bool) error {
 	}
 
 	return nil
-}
-
-func (t *transit) AfterTransporterDisconnect(err error) {
-	t.logger.Error().Err(err).Msg("")
-	t.Connect(true)
 }
 
 func (t *transit) getNodeID() string {

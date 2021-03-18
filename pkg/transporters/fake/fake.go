@@ -15,7 +15,7 @@ type fake struct {
 	connected bool
 }
 
-func New() t.TransporterFactory {
+func NewFactory() t.TransporterFactory {
 	return func(x transit.Transit) t.Transporter {
 		return &fake{
 			Base: t.New(x),

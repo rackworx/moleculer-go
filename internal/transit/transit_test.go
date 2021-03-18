@@ -1,18 +1,60 @@
 package transit_test
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 	"time"
 
+	"github.com/imdario/mergo"
 	"github.com/rackworx/moleculer-go/internal/packets"
 	"github.com/rackworx/moleculer-go/internal/transit"
 	"github.com/rackworx/moleculer-go/pkg/config"
+	"github.com/rackworx/moleculer-go/pkg/packet"
 	tz "github.com/rackworx/moleculer-go/pkg/transit"
 	tx "github.com/rackworx/moleculer-go/pkg/transporter"
 	"github.com/rackworx/moleculer-go/test"
 	"github.com/stretchr/testify/assert"
 )
+
+var broker *test.MockBroker
+var transporter *test.MockTransporter
+
+func createTransit(c config.TransitConfig) tz.Transit {
+	broker = &test.MockBroker{}
+	transporter = &test.MockTransporter{}
+	transporterFactory := func(_ tz.Transit) tx.Transporter {
+		return transporter
+	}
+
+	mergo.Merge(&c, config.TransitConfig{
+		TransporterFactory: transporterFactory,
+	})
+
+	cfg := config.New(config.Config{
+		Transit: c,
+	})
+
+	return transit.New(cfg.Transit, broker)
+}
+
+func TestInfoPacket(t *testing.T) {
+	inPayload := packets.InfoPayload{
+		Ver: "3",
+	}
+
+	in, err := json.Marshal(inPayload)
+
+	assert.Nil(t, err)
+
+	transit := createTransit(config.TransitConfig{})
+
+	transit.HandlePacket(packet.Packet{
+		Type:    packets.PACKET_INFO,
+		Target:  "this",
+		Payload: in,
+	})
+}
 
 func TestTransitConnectReconnectWithDisabledReconnect(t *testing.T) {
 	broker := &test.MockBroker{}

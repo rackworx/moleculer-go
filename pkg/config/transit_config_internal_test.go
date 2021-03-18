@@ -1,9 +1,11 @@
 package config
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
+	"github.com/rackworx/moleculer-go/pkg/serializers/json"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,6 +31,11 @@ func TestCreateDefaultTransitConfig(t *testing.T) {
 		t,
 		500,
 		createDefaultTransitConfig(TransitConfig{MaxQueueSize: 500}).MaxQueueSize,
+	)
+	assert.Equal(
+		t,
+		reflect.TypeOf(json.New()),
+		reflect.TypeOf(createDefaultTransitConfig(TransitConfig{}).Serializer),
 	)
 	assert.Equal(
 		t,

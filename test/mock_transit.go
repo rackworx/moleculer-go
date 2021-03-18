@@ -1,6 +1,9 @@
 package test
 
-import "github.com/stretchr/testify/mock"
+import (
+	"github.com/rackworx/moleculer-go/pkg/packet"
+	"github.com/stretchr/testify/mock"
+)
 
 type MockTransit struct {
 	mock.Mock
@@ -20,4 +23,8 @@ func (m *MockTransit) Connect(isReconnect bool) error {
 	args := m.Called(isReconnect)
 
 	return args.Error(0)
+}
+
+func (m *MockTransit) HandlePacket(p packet.Packet) {
+	m.Called(p)
 }
